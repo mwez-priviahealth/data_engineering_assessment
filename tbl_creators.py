@@ -4,9 +4,6 @@
 
 class TableCreator:
 
-    def __init__(self):
-        print('') # yes this is hacky, I get an indent error if I don't, something to learn here
-
     @staticmethod
     def create_demo_table():
         import pyodbc

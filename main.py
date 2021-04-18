@@ -29,21 +29,19 @@ ddf, qrdf = dataExtractor.extract()
 # qrdf is for quarterly risk dataframe
 
 # cleanse, curate and transpose the data as needed
-provDataCurator = dc.DataCurator()
-res_ddf = provDataCurator.curate_demographics(ddf)
-res_qrdf = provDataCurator.curate_risk_attr(qrdf)
+provDataCurator = dc.DataCurator(ddf,qrdf)
+res_ddf = provDataCurator.curate_demographics()
+res_qrdf = provDataCurator.curate_risk_attr()
 
 # In a work setting I would create a connector class
 # I would bet "dollars to donuts" that you have this built already
 # For expediency, I am just going to pass the connection string code as needed
 
 # If it does not exist, create a table to hold data in sql server
-sqlTableCreator = tc.TableCreator()
-sqlTableCreator.create_demo_table()
-sqlTableCreator.create_risk_att_table()
+tc.TableCreator.create_demo_table()
+tc.TableCreator.create_risk_att_table()
 # doesn't actually make table, not required for test
 
 # Insert records into respective SQL Server Table
-sqlDemoDataLoader = ld.dataLoader()
-sqlDemoDataLoader.load_demo_data(res_ddf)
+ld.dataLoader.load_demo_data(res_ddf)
 # I would also do this for risk attr dataframe, not technically required for test

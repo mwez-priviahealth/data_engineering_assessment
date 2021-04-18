@@ -24,7 +24,8 @@ class attr_file_uploader:
         idf = pd.read_excel(fullpath, sheet_name=self.import_sheet_name)
 
         # for production work, I would write code to auto check for rows and columns with no content
-        # for time, I am explicitly calling out specific rows and columns, I wouldn't assume consitency outside of a test
+        # for time, I am explicitly calling out specific rows and columns
+        # I wouldn't assume consitency outside of a test
         idf.drop(idf.index[0], inplace=True)
         idf.drop(idf.index[0], inplace=True)
         idf.drop(idf.columns[0], axis=1, inplace=True)

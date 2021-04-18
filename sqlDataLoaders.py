@@ -2,10 +2,7 @@
 
 class dataLoader:
 
-    def __init__(self):
-        print('')  # yes this is hacky, I get an indent error if I don't, something to learn here
-
-    def load_demo_data(self, ddf):
+    def load_demo_data(ddf):
         import pyodbc as py
         import pandas as pd
 
@@ -18,12 +15,11 @@ class dataLoader:
                 "INSERT INTO dbo.Demographics([PersonID],[FirstName],[MI],[LastName],[DOB],[Sex],[FavoriteColor],"
                 "[ProviderName],[FileDate]) values (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 [row['ID'], row['FirstName'], row['MI'], row['LastName'], row['DOB'], row['Sex'], row['FavoriteColor'],
-                 row['ProviderName'], row['FileDate']])
+                row['ProviderName'], row['FileDate']])
 
         cnxn.commit()
         cursor.close()
         cnxn.close()
-
 
     def load_risk_data(rdf):
         print('')
