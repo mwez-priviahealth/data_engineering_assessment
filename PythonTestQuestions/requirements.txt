@@ -1,0 +1,6 @@
+REQUIREMENTS
+-----------------------
+pyhon 3.6 or higher
+MS SQL Server 2016 or higher
+pandas 0.2 or higher
+pyodbc 2.1.2 or higher
