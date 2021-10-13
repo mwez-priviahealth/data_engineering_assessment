@@ -1,0 +1,37 @@
+Requirements for Data Engineer Assessment
+
+Python
+Anaconda 4.10.1 -> Python 3.8 environment
+pandas 1.24
+numpy 1.201
+pyodbc 4.0.30
+
+SQL Server
+Question I solutions
+------------------------------------------------------------------------------------
+My solutions to Question I is located in the file, JacobTerriePythonQuestion1.py.
+
+To execute my solution, first modify line 8 with the appropriate server of the SQL server instance.
+
+Afterwards, please use Anaconda prompt and type the following:
+
+cd PythonTestQuestions
+python JacobTerriePythonQuestion1.py --excelFile "filename" --numRows number of rows
+
+To get a description of the arguments please type the following:
+"python JacobTerriePythonQuestion1.py --help"
+------------------------------------------------------------------------------------
+Question II Solutions
+------------------------------------------------------------------------------------
+My solution to Question II is located in the file, JacobTerriePythonQuestion2.py and the interface and arguments are the same as my solution to question I.
+Before executing, please makesure to modify line 8 with the appropriate name for your SQL server instance as you did for question I.
+------------------------------------------------------------------------------------
+Unit Tests
+------------------------------------------------------------------------------------
+Before executing the unit tests, be sure to modify line 14 in test_question1.py and test_question2.py with the appropriate name of you SQL server instance.
+
+Afterwards, to run the unit tests, go to Anaconda prompt and type the following:
+
+cd PythonTestQuestions
+python -m unittest discover -v
+------------------------------------------------------------------------------------
