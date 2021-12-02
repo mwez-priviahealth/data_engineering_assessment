@@ -1,7 +1,9 @@
 import pandas as pd
 import re
+from sqlalchemy import create_engine
 import psycopg2
 import openpyxl
+engine = create_engine('postgresql://javierbenitez@localhost:5432/PERSONDATABASE')
 
 def create_dataframe():
     file_name = 'Privia Family Medicine 113018.xlsx'
@@ -28,7 +30,7 @@ def upload_demographics():
     data['MIDDLE_NAME'] = data['MIDDLE_NAME'].str[0]
     data['PROVIDER_GROUP'] = file_name[:-12]
     data = data.drop(['ATTRIBUTED_Q1', 'ATTRIBUTED_Q2', 'RISK_Q1', 'RISK_Q2', 'RISK_INCREASED_FLAG'], axis=1)
-    data.to_sql()
+    data.to_sql('demographics', engine, if_exists='append')
     print(data)
 
 def upload_quarterly_risk():
@@ -37,6 +39,7 @@ def upload_quarterly_risk():
     indexes = data[data['RISK_INCREASED_FLAG'] == ' No'].index
     data.drop(indexes, inplace=True)
     data.drop(data.columns[3], axis=1, inplace=True)
+    data.to_sql('quaterly_risk', engine, if_exists='append')
     print(data)
 
 def main():
