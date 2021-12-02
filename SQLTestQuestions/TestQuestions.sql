@@ -18,10 +18,14 @@ The table dbo.Risk contains calculated risk scores for the population in dbo.Per
 query or group of queries that return the patient name, and their most recent risk level(s). 
 Any patients that dont have a risk level should also be included in the results. 
 
+This needs to be change into T-SQL
 **********************/
 
 
-
+select p.personname, r.riskscore
+from risk as r right join person as p
+on r.personid = p.personid
+order by 1,2;
 
 
 /**********************

@@ -1,8 +1,7 @@
 import pandas as pd
+import unittest
 import re
 from sqlalchemy import create_engine
-import unittest
-import psycopg2
 import openpyxl
 engine = create_engine('postgresql://javierbenitez@localhost:5432/PERSONDATABASE')
 
@@ -35,7 +34,7 @@ def upload_demographics():
     data['PROVIDER_GROUP'] = file_name[:-12]
     data = data.drop(['ATTRIBUTED_Q1', 'ATTRIBUTED_Q2', 'RISK_Q1', 'RISK_Q2', 'RISK_INCREASED_FLAG'], axis=1)
     data.to_sql('demographics', engine, if_exists='append')
-    print(data)
+    return data
 
 
 def upload_quarterly_risk():
@@ -46,24 +45,14 @@ def upload_quarterly_risk():
     data.drop(data.columns[3], axis=1, inplace=True)
     data.to_sql('quarterly_risk', engine, if_exists='append')
     print(data)
+    return data
 
-# Need to create test cases
-
-
-def test_sum():
-    assert sum([1, 2, 3]) == 6, "Should be 6"
-
-
-def test_sum_tuple():
-    assert sum((1, 2, 2)) == 5, "Should be 6"
 
 
 def main():
     upload_demographics()
     upload_quarterly_risk()
-    test_sum()
-    test_sum_tuple()
-    print("Everything passed")
+
 
 
 main()
