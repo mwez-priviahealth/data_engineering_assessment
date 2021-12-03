@@ -1,0 +1,16 @@
+Imports:
+import pandas as pd
+import re
+from sqlalchemy import create_engine
+import openpyxl
+import math
+
+Information Needed to get this running:
+
+    Database:
+        Credentials
+    Access to proper folders
+
+That's all that I can think of.
+
+
