@@ -81,7 +81,7 @@ class QuarterRisk(Base):
     filedate = Column(Date)
 
 if __name__ == "__main__":
-    db_string = "postgresql://postgres:password1@localhost:5432/persondatabase"
+    db_string = "postgresql://postgres:passwor@localhost:5432/persondatabase"
     engine = create_engine(db_string)
     Base.metadata.create_all(engine)
 
