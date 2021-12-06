@@ -5,162 +5,133 @@ from sqlalchemy import *
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import UniqueConstraint
+from sqlalchemy.sql.schema import Column
 
+#EXTRACT DATA
 
+FILEPATH = '/Users/melissa/Desktop/data_engineering_assessment-master/PythonTestQuestions/Privia Family Medicine 113018.xlsx' #insert correct filepath
 
-############ EXTRACT DATA ############ 
+def extract():
 
+	path, filename = os.path.split(FILEPATH)
+	root, ext = os.path.splitext(filename)
+	group = ' '.join(filename.split(' ')[:-1])
+	filedate = root.rsplit(' ')[3]
 
+	df = pd.read_excel(FILEPATH, usecols="B:M", skiprows=3)
+	df = df[:-3]
 
-fullpath = '/Users/melissa/Desktop/data_engineering_assessment-master/PythonTestQuestions/Privia Family Medicine 113018.xlsx' #insert correct filepath
+	return(group, filedate, df);
 
-path, filename = os.path.split(fullpath)
-root, ext = os.path.splitext(filename)
-group = ' '.join(filename.split(' ')[:-1])
-filedate = root.rsplit(' ')[3]
+#TRANSFORM DATA 
 
-df = pd.read_excel(fullpath, usecols="B:M", skiprows=3)
-df = df[:-3]
+def transform():
 
+	group, filedate, df = extract()
 
-############ TRANSFORM DATA ############ 
+	df.columns = df.columns.str.lower().str.replace(' ', '')
 
+	df.rename(columns={'dob[1]': 'dob'}, inplace=True)
+	df['dob'] = pd.to_datetime(df.dob)
 
+	df['middlename'] = df['middlename'].str[:1]
 
-df.columns = df.columns.str.lower().str.replace(' ', '')
+	df.insert(7, "providergroup", group)
+	df.insert(8, "filedate", filedate)
 
-df.rename(columns={'dob[1]': 'dob'}, inplace=True)
-df['dob'] = pd.to_datetime(df.dob)
+	df['filedate'] = pd.to_datetime(filedate)
+	df['filedate'] = df['filedate'].dt.strftime('%m/%d/%Y')
+	df['sex'] = df['sex'].astype(str)
+	df['sex'] = df['sex'].str.replace("0","M").str.replace("1","F").str[:1]
 
-df['middlename'] = df['middlename'].str[:1]
+	dcols = df[['id', 'firstname', 'middlename', 'lastname', 'dob', 'sex', 'favoritecolor', 'providergroup', 'filedate']]
 
-df.insert(7, "providergroup", group)
-df.insert(8, "filedate", filedate)
+	demographics = dcols.copy()
 
-df['filedate'] = pd.to_datetime(filedate)
-df['filedate'] = df['filedate'].dt.strftime('%m/%d/%Y')
-df['sex'] = df['sex'].astype(str)
-df['sex'] = df['sex'].str.replace("0","M").str.replace("1","F").str[:1]
+	qcols = df[['id','attributedq1','attributedq2', 'riskq1', 'riskq2', 'riskincreasedflag','filedate']]
+	quartersrisk =  qcols.copy()
+	quartersrisk = quartersrisk.loc[quartersrisk['riskincreasedflag'] == 'Yes']
 
-dcols = df[['id', 'firstname', 'middlename', 'lastname', 'dob', 'sex', 'favoritecolor', 'providergroup', 'filedate']]
+	return(demographics, quartersrisk);
 
-demographics = dcols.copy()
+#CONNECT TO DATABASE AND LOAD DATA
 
-qcols = df[['id','attributedq1','attributedq2', 'riskq1', 'riskq2', 'riskincreasedflag','filedate']]
-quartersrisk =  qcols.copy()
-quartersrisk = quartersrisk.loc[quartersrisk['riskincreasedflag'] == 'Yes']
+def load():
+	
+	demographics, quartersrisk = transform()
 
+	Base = declarative_base()
 
+	if __name__ == "__main__":
+		db_string = "postgresql://postgres:password1@localhost:5432/persondatabase"
+		engine = create_engine(db_string)
+		Base.metadata.create_all(engine)
 
-############ TABLE SCHEMA AND CONNECT TO DATABASE ############ 
+	demographics.to_sql(name='demo', con=engine, if_exists='replace', index=False, 
+	dtype={'id': INTEGER(),
+		'firstname': VARCHAR(50),
+		'middlename': VARCHAR(50),
+		'lastname': VARCHAR(50),
+		'dob': TIMESTAMP(),
+		'sex': VARCHAR(50),
+		'favoritecolor': VARCHAR(50),
+		'providergroup': VARCHAR(50),
+		'filedate': DATE()})	
+	
+	quartersrisk.to_sql(name='qrtrsk', con=engine, if_exists='replace', index=False,
+	dtype={'id': INTEGER(),
+		'attributedq1': VARCHAR(50),
+		'attributedq2': VARCHAR(50),
+		'riskq1':  Float(precision=15, asdecimal=True),
+		'riskq2': Float(precision=15, asdecimal=True),
+		'riskincreasedflag': VARCHAR(50),
+		'filedate': DATE()})
+	
+	with engine.connect() as con:
+		engine.execute('ALTER TABLE demo ADD PRIMARY KEY (id);')
+		engine.execute('ALTER TABLE qrtrsk ADD PRIMARY KEY (id);')
+	
+	return(engine, Base, Base.metadata);
 
+#TEST QUERY
 
+def test():
+	
+	engine, Base, Base.metadata = load()
 
-Base = declarative_base()
+	demo = db.Table('demo', Base.metadata, autoload=True, autoload_with=engine)
+	query1 = db.select([demo])
+	#query1 = db.select([demo]).where(demo.columns.sex == 'F')
+	ResultProxy1 = engine.execute(query1).fetchall()
+	dfdemo = pd.DataFrame(ResultProxy1)
+	dfdemo.columns = ResultProxy1[0].keys()
 
-class Demographics(Base):
-    __tablename__ = 'demo'
-    id = Column(Integer, primary_key=True, unique=True)
-    firstname = Column(String(50))
-    middlename = Column(String(50))
-    lastname = Column(String(50))
-    dob = Column(DateTime)
-    sex = Column(String(50))
-    favoritecolor = Column(String(50))
-    providergroup = Column(String(50))
-    filedate = Column(Date)
+	print()
+	print("Demographics Table Returned from Database: ")
+	print(dfdemo.head())
+	print()
 
-class QuarterRisk(Base):
-    __tablename__ = 'qrtrsk'
-    id = Column(Integer, primary_key=True, unique=True)
-    attributedq1 = Column(String(50))
-    attributedq2 = Column(String(50))
-    riskq1 = Column(Integer)
-    riskq2 = Column(Integer)
-    riskincreasedflag = Column(String(50))
-    filedate = Column(Date)
+	qrtrsk = db.Table('qrtrsk', Base.metadata, autoload=True, autoload_with=engine)
+	query2 = db.select([qrtrsk])
+	#query2 = db.select([qrtrsk]).where(qrtrsk.columns.attributedq1 == 'No')
+	ResultProxy2 = engine.execute(query2).fetchall()
+	dfqr= pd.DataFrame(ResultProxy2)
+	dfqr.columns = ResultProxy2[0].keys()
 
-if __name__ == "__main__":
-    db_string = "postgresql://postgres:passwor@localhost:5432/persondatabase"
-    engine = create_engine(db_string)
-    Base.metadata.create_all(engine)
+	print("QuarterRisk Table Returned from Database: ")
+	print(dfqr.head())
 
+	print()
+	# Run unit tests from testreport.py
+	print("Starting Unit Tests")
+	import testreport
 
+	return();
 
-############ LOAD DATA ############
+def main():
 
+	transform()
+	load()
+	test()
 
-demographics.to_sql(name='demo', con=engine, if_exists='replace', index=False)
-
-quartersrisk.to_sql(name='qrtrsk', con=engine, if_exists='replace', index=False)
-
-
-
-############ TEST QUERY ############ 
-
-
-
-print("\n")
-
-
-##Check for valid entries
-
-demo = db.Table('demo', Base.metadata, autoload=True, autoload_with=engine)
-query1 = db.select([demo])
-#query1 = db.select([demo]).where(demo.columns.sex == 'F')
-ResultProxy1 = engine.execute(query1).fetchall()
-dfdemo = pd.DataFrame(ResultProxy1)
-dfdemo.columns = ResultProxy1[0].keys()
-
-print("Demographics Table Returned from Database: ")
-print(dfdemo.head())
-
-print("\n")
-
-
-#Check for valid entries
-
-qrtrsk = db.Table('qrtrsk', Base.metadata, autoload=True, autoload_with=engine)
-query2 = db.select([qrtrsk])
-#query2 = db.select([qrtrsk]).where(qrtrsk.columns.attributedq1 == 'No')
-ResultProxy2 = engine.execute(query2).fetchall()
-dfqr= pd.DataFrame(ResultProxy2)
-dfqr.columns = ResultProxy2[0].keys()
-
-print("QuarterRisk Table Returned from Database: ")
-print(dfqr.head())
-
-print("\n")
-
-#Check for nulls
-
-query3 = engine.execute('SELECT COUNT(id) FROM "demo" WHERE id IS NULL').scalar()
-print(f"Number of Nulls in ID Column in Demographics Table: {query3}")
-
-
-#Check for min max range
-
-query4 = engine.execute('SELECT COUNT(riskq1) FROM "qrtrsk" WHERE riskq1 < 0 OR riskq1 > 1').scalar()
-print(f"Number of Entries in RiskQ1 Column outside Min Max Range of 0-1 in QuarterRisk Table: {query4}")
-
-
-#Check for duplicate entries
-
-query5 = engine.execute('SELECT COUNT(id) FROM "demo" GROUP BY id HAVING COUNT(id) > 1').scalar()
-print(f"Number of Duplicate Entries in ID Column in Demographics Table: {query5}")
-
-
-#Check for nulls
-
-query6 = engine.execute('SELECT COUNT(id) FROM "qrtrsk" WHERE id IS NULL').scalar()
-print(f"Number of Nulls in ID Column in QuarterRisk Table: {query6}")
-
-
-#Check for duplicate entries
-
-query7 = engine.execute('SELECT COUNT(id) FROM "qrtrsk" GROUP BY id HAVING COUNT(id) > 1').scalar()
-print(f"Number of Duplicate Entries in ID Colum in QuarterRisk Table: {query7}")
-
-print("\n")
-
-
+main();
