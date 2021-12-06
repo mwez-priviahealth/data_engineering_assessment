@@ -19,7 +19,7 @@ from datatest import run_data_quality_check
 # connect to database
 
 Base = declarative_base()
-db_string = "postgresql://postgres:password1@localhost:5432/persondatabase"
+db_string = "postgresql://postgres:passwor@localhost:5432/persondatabase"
 engine = create_engine(db_string)
 Base.metadata.create_all(engine)
 
