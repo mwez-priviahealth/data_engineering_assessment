@@ -10,13 +10,166 @@ Please provide adequate test coverage for you solutions.
 1. Import the 'Demographics' data section to a table in the database. This ETL will need to process files of the
 same type delivered later on with different file dates and from different groups.
     a. Include all fields under 'Demographics'
+
+    import pandas as pd
+    import mysql.connector
+    from mysql.connector import Error
+
+    def connect():
+
+    conn = None  #this will be the default 
+
+    #converted to csv
+    df = pd.read_csv('demo_Quart.csv')
+
+    demographics = (df.loc[:, df.columns != 'Quarters' and df.columns != 'Risk Data']
+    print(demographics)
+
+      if conn.is_connected():
+            print('Connected to MySQL database')
+
+            cursor = conn.cursor()
+
+            cursor.execute("CREATE DATABASE 'priviafamilymed')
+
+
+
+
     b. Define the sql schema as necessary. Fields should not include spaces or special characters.
+
+        ###already created a database through workbench
+
+        ##In python, creating a database is shown below: 
+        
+        try:
+            conn = mysql.connector.connect(host='localhost', 
+                                       user='root',
+                                       password='root')
+
+            cursor = conn.cursor()
+            cursor.execute("CREATE DATABASE 'priviafamilymed')
+            
+            
+
     c. Include fields in the data table that indicate the date of the file and the provider group located in the filename.
         In this case "Privia Family Medicine" 11/30/2018. Assume the length of the group name will change and the date
         will always be formatted at the end of the file as MMDDYY
+        
+         
+         
+         if conn.is_connected():
+            print('Connected to MySQL database')
+
+            cursor = conn.cursor()
+            
+            #adding date of file
+            
+            cursor.execute("ALTER TABLE demo_quart
+            ADD DOF DATE
+            ")
+            #df.to_sql('demo_quart', conn, if_exists= 'replace', index = False)
+            myrow = cursor.fetchone()
+
+            while myrow is not None: 
+                print(myrow)
+                myrow = cursor.fetchone()
+                
+                
+                
+          if conn.is_connected():
+            print('Connected to MySQL database')
+
+            cursor = conn.cursor()
+            
+            #adding date of file
+            
+            cursor.execute("ALTER TABLE demo_quart
+            ADD provider_group varchar(30)
+            ")
+            #df.to_sql('demo_quart', conn, if_exists= 'replace', index = False)
+            myrow = cursor.fetchone()
+
+            while myrow is not None: 
+                print(myrow)
+                myrow = cursor.fetchone()
+                
+                
+                
+                
+         if conn.is_connected():
+            print('Connected to MySQL database')
+
+            cursor = conn.cursor()
+            
+            #adding date of file
+            
+            cursor.execute("INSERT INTO demo_quart (DOF, provider_group
+            VALUES
+            ('11/30/2018', 'Privia Family Medicine'
+            ")
+            #df.to_sql('demo_quart', conn, if_exists= 'replace', index = False)
+            myrow = cursor.fetchone()
+
+            while myrow is not None: 
+                print(myrow)
+                myrow = cursor.fetchone()
+        
+
+
+
+
     d. Include only the first initial of the Middle Name when applicable.
+
+      if conn.is_connected():
+            print('Connected to MySQL database')
+
+            cursor = conn.cursor()
+
+            cursor.execute("SELECT SUBSTRING(middlename, 1,1) 
+            FROM demo_quart")
+            #df.to_sql('demo_quart', conn, if_exists= 'replace', index = False)
+            myrow = cursor.fetchone()
+
+            while myrow is not None: 
+                print(myrow)
+                myrow = cursor.fetchone()
+
     e. Convert the Sex value to M or F: M for 0 and F for 1
 
+  #male 
+  if conn.is_connected():
+            print('Connected to MySQL database')
+
+            cursor = conn.cursor()
+
+            cursor.execute("UPDATE demo_quart
+            SET Sex = 0
+            where Sex = "male"
+            ")
+            #df.to_sql('demo_quart', conn, if_exists= 'replace', index = False)
+            myrow = cursor.fetchone()
+
+            while myrow is not None: 
+                print(myrow)
+                myrow = cursor.fetchone()
+
+    #female 
+
+     if conn.is_connected():
+            print('Connected to MySQL database')
+
+            cursor = conn.cursor()
+
+            cursor.execute("UPDATE demo_quart
+            SET Sex = 1
+            where Sex = "female"
+            ")
+            #df.to_sql('demo_quart', conn, if_exists= 'replace', index = False)
+            myrow = cursor.fetchone()
+
+            while myrow is not None: 
+                print(myrow)
+                myrow = cursor.fetchone()
 
 2. Transform and import the 'Quarters' and 'Risk' data into a separate table.
     a. Unpivot the data so that the data table includes
@@ -24,7 +177,279 @@ same type delivered later on with different file dates and from different groups
         ii. Quarter
         iii. Attributed flag
         iv. Risk Score
+        
+        
+import pandas as pd
+import mysql.connector
+from mysql.connector import Error
+
+
+
+def connect():
+
+    conn = None  #this will be the default 
+
+    df = pd.read_csv('demo_Quart.csv')
+
+    trun = df.truncate(before = 'Attributed Q1', after = 'ID')
+    #print(df)
+
+    try:
+        conn = mysql.connector.connect(host='localhost',
+                                       database='priviafamilymed',
+                                       user='root',
+                                       password='root')
+
+
+
+        if conn.is_connected():
+            print('Connected to MySQL database')
+
+            cursor = conn.cursor()
+
+            #trun.to_sql('quart_risk', conn, if_exists= 'replace', index = False)
+            
+            
+@@ -27,4 +115,140 @@ same type delivered later on with different file dates and from different groups
         v. File date
      b. Only include records in which the patients risk has increased.
+
+import pandas as pd
+import mysql.connector
+from mysql.connector import Error
+
+
+
+def connect():
+
+    conn = None  #this will be the default 
+
+    df = pd.read_csv('demo_Quart.csv')
+
+    trun = df.truncate(before = 'Attributed Q1', after = 'ID')
+    #print(df)
+
+    try:
+        conn = mysql.connector.connect(host='localhost',
+                                       database='priviafamilymed',
+                                       user='root',
+                                       password='root')
+
+
+
+        if conn.is_connected():
+            print('Connected to MySQL database')
+
+            cursor = conn.cursor()
+
+            #trun.to_sql('quart_risk', conn, if_exists= 'replace', index = False)
+
+            cursor.execute("SELECT * from quart_risk where risk_increased_flag = 'Yes';")
+
+
+            myrow = cursor.fetchone()
+
+            while myrow is not None: 
+                print(myrow)
+                myrow = cursor.fetchone()
+
+
+    except Error as e:
+        print(e)
+
+
+    finally:
+        if conn is not None and conn.is_connected():
+            conn.close()
+
+if __name__ == '__main__':
+    connect()
+
+
+
+
+
 3. Include Unit Tests 
+
+
+Test #1 
+import pandas as pd
+import mysql.connector
+from mysql.connector import Error
+
+
+
+def connect():
+
+    conn = None  #this will be the default 
+
+    df = pd.read_csv('demo_Quart.csv')
+
+    #print(df)
+
+    try:
+        conn = mysql.connector.connect(host='localhost',
+                                       database='priviafamilymed',
+                                       user='root',
+                                       password='root')
+
+
+
+        if conn.is_connected():
+            print('Connected to MySQL database')
+
+            cursor = conn.cursor()
+
+            cursor.execute("SELECT Middle Name from demo_quart where Middle name")
+            #df.to_sql('demo_quart', conn, if_exists= 'replace', index = False)
+            myrow = cursor.fetchone()
+
+            while myrow is not None: 
+                print(myrow)
+                myrow = cursor.fetchone()
+
+
+
+            '''#this is my code to query my friends info 
+            cursor = conn.cursor()
+            cursor.execute("SELECT * from demo_quart WHERE FIRST NAME = 'MYRL';")
+            myrow = cursor.fetchone()
+
+            print(myrow)
+
+            '''
+
+            '''
+            while myrow is not None: 
+                print(myrow)
+                myrow = cursor.fetchone()
+
+            '''
+
+    except Error as e:
+        print(e)
+
+
+    finally:
+        if conn is not None and conn.is_connected():
+            conn.close()
+
+if __name__ == '__main__':
+    connect()
+
+
+SECOND TEST 
+
+import pandas as pd
+import mysql.connector
+from mysql.connector import Error
+
+
+
+def connect():
+
+    conn = None  #this will be the default 
+
+    df = pd.read_csv('demo_Quart.csv')
+
+    #print(df)
+
+    try:
+        conn = mysql.connector.connect(host='localhost',
+                                       database='priviafamilymed',
+                                       user='root',
+                                       password='root')
+
+
+
+        if conn.is_connected():
+            print('Connected to MySQL database')
+
+            cursor = conn.cursor()
+
+            cursor.execute("SELECT Middle Name from demo_quart where Middle name")
+            #df.to_sql('demo_quart', conn, if_exists= 'replace', index = False)
+            myrow = cursor.fetchone()
+
+            while myrow is not None: 
+                print(myrow)
+                myrow = cursor.fetchone()
+
+
+
+            '''#this is my code to query my friends info 
+            cursor = conn.cursor()
+            cursor.execute("SELECT * from demo_quart WHERE LAST NAME = 'CHIN';")
+            myrow = cursor.fetchone()
+
+            print(myrow)
+
+            '''
+
+            '''
+            while myrow is not None: 
+                print(myrow)
+                myrow = cursor.fetchone()
+
+            '''
+
+    except Error as e:
+        print(e)
+
+
+    finally:
+        if conn is not None and conn.is_connected():
+            conn.close()
+
+if __name__ == '__main__':
+    connect()
+
+
+
+Test #3 
+
+def connect():
+
+    conn = None  #this will be the default 
+
+    df = pd.read_csv('demo_Quart.csv')
+
+    #print(df)
+
+    try:
+        conn = mysql.connector.connect(host='localhost',
+                                       database='priviafamilymed',
+                                       user='root',
+                                       password='root')
+
+
+
+        if conn.is_connected():
+            print('Connected to MySQL database')
+
+            cursor = conn.cursor()
+
+            cursor.execute("SELECT * from quart_risk where risk_q1 >= .5;")
+            #df.to_sql('demo_quart', conn, if_exists= 'replace', index = False)
+            myrow = cursor.fetchone()
+
+            while myrow is not None: 
+                print(myrow)
+                myrow = cursor.fetchone()
+
+
+     except Error as e:
+        print(e)
+
+
+     finally:
+          if conn is not None and conn.is_connected():
+            conn.close()
+
+if __name__ == '__main__':
+    connect()
+
+
+
+
 4. Provide all necessary information for the team to get this up and running.
