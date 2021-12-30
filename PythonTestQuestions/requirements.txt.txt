@@ -1,0 +1,7 @@
+To run main.py, change the server to a local one. All code blocks can be confirmed by running on server, or running df.head() statements.Use drop statements to do future loads of different files.
+
+
+Packages used:
+
+pyodbc
+pandas
