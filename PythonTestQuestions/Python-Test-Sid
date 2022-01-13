@@ -1,0 +1,61 @@
+import pandas as pd
+import os as os
+import sqlite3
+import datetime
+
+dir = '/Users/sjasani/Documents/Privia_Temp/'
+
+try:
+    
+    for all_files in os.listdir (dir):   
+        df_demographics = pd.read_excel(dir+all_files,header=3,usecols=[1,2,3,4,5,6,7],skipfooter=3)
+        df_quarterRisk = pd.read_excel(dir+all_files,header=3,usecols=[1,8,9,10,11,12],skipfooter=3)
+        file_name = str.replace(all_files,".xlsx","")
+
+    ProviderGroup = file_name[:-7]
+    FileDate = file_name[-6:]
+
+    FileDate = datetime.strptime(FileDate, '%m%d%y').strftime('%m/%d/%Y')
+
+    df_demographics["ProviderGroup"] = ProviderGroup
+    df_demographics["FileDate"] = FileDate
+    df_quarterRisk["FileDate"] = FileDate
+    print("File Imported Successfully")
+
+except:
+    print('File Import Failed')
+    exit()
+    
+# To remove spaces and special characters from the column names
+df_demographics.rename(columns = {"First Name": "FirstName", "Middle Name": "MiddleName", "Last Name": "LastName", "DOB[1]": "DOB", "Favorite Color": "FavoriteColor"}, inplace = True)
+
+# Getting first initial from the middle name
+df_demographics['MiddleName'] = df_demographics['MiddleName'].str[:1]
+
+# Mapping Gender to M or f
+df_demographics['Sex'] = df_demographics['Sex'].map({0 :'M', 1:'F'})
+
+# Removing any NAN values with empty string
+df_demographics.fillna('', inplace = True)
+
+# Verifying the dataframe
+print(df_demographics)
+
+# Cleaning column names for QuarterRisk data frame
+df_quarterRisk.rename(columns = {"Attributed Q1": "AttributedQ1", "Attributed Q2": "AttributedQ2", "Risk Q1": "RiskQ1", "Risk Q2 ": "RiskQ2", "Risk Increased Flag": "RiskIncreasedFlag"}, inplace = True)
+
+# Restricting to only ["RiskIncreasedFlag"] == 'Yes' records
+df_quarterRisk = df_quarterRisk[df_quarterRisk["RiskIncreasedFlag"] == 'Yes']
+df_quarterRisk = df_quarterRisk[['ID','AttributedQ1','AttributedQ2','RiskQ1','RiskQ2']]
+
+# Pivoting the table
+df_quarterRisk=pd.wide_to_long(df_quarterRisk, ["Attributed", "Risk"], i="ID", j="Quarter",suffix='\w+').reset_index()
+print(df_quarterRisk)
+
+# Connecting to db and importing dataframe into sql table
+conn = sqlite3.connect('PersonDatabase.db')
+cur = conn.cursor()
+df_demographics.to_sql(name='Temp_Demographics', if_exists='replace', con=conn)
+cur.execute("""SELECT * FROM Temp_Demographics;""").fetchall()
+df_quarterRisk.to_sql(name='QuarterRisk', if_exists='replace', con=conn)
+cur.execute("""SELECT * FROM QuarterRisk;""").fetchall()
