@@ -20,7 +20,14 @@ Any patients that dont have a risk level should also be included in the results.
 
 **********************/
 
-
+SELECT ['Patient Name'], ['Risk Level'], ['Risk DateTime'] FROM (
+  SELECT 
+	  ['Patient Name'] = PersonName,
+	  ['Risk Level'] = RiskLevel,
+	  ['Risk DateTime'] = RiskDateTime,
+	  ['DenseRank'] = DENSE_RANK() OVER (PARTITION BY PersonName ORDER BY RiskDateTime DESC)
+  FROM dbo.Person LEFT JOIN dbo.Risk ON Person.PersonID = Risk.PersonID
+) rank_table WHERE ['DenseRank'] = 1
 
 
 
@@ -35,7 +42,56 @@ return the full name and nickname of each person. The nickname should contain on
 or be blank if no nickname exists.
 
 **********************/
+	CREATE FUNCTION dbo.ExtractNickName (@raw_name VARCHAR(500))
+	RETURNS VARCHAR(250)
+	AS BEGIN
+		DECLARE @result VARCHAR(250)
 
+		IF (CHARINDEX('(', @raw_name) > 0 OR CHARINDEX(')', @raw_name) > 0) --Only parse if parens are in the name
+			BEGIN
+				SET @result = SUBSTRING(@raw_name,CHARINDEX('(', @raw_name) + 1,
+													  CHARINDEX(')', @raw_name) - CHARINDEX('(', @raw_name) - 1)
+			END
+		ELSE
+			BEGIN
+				SET @result = NULL
+			END
+
+		RETURN @result
+
+	END
+
+	CREATE FUNCTION dbo.ExtractFullName (@raw_name VARCHAR(500))
+	RETURNS VARCHAR(500)
+	AS BEGIN
+		DECLARE @result VARCHAR(500)
+		DECLARE @nickname VARCHAR(250)
+
+		SET @nickname = dbo.ExtractNickName(@raw_name)
+
+		IF (@nickname IS NOT NULL) -- If there is a nickname, then we'll need to remove it.
+			BEGIN
+				SET @result = REPLACE(@raw_name, '(' + @nickname + ')', '')
+				-- Handle any remaining parens
+				SET @result = REPLACE(@result, '(','')
+				SET @result = REPLACE(@result, ')','')
+			END
+		ELSE
+			BEGIN
+				SET @result = @raw_name
+			END
+
+		RETURN TRIM(@result)
+	END
+
+SELECT 
+	[OriginalName] = PersonName,
+	[Full Name] = dbo.ExtractFullName(PersonName),
+	[NickName] = CASE 
+						WHEN dbo.ExtractNickName(PersonName) = '' THEN NULL --Empty Nicknames will be changed to NULL
+						ELSE dbo.ExtractNickName(PersonName)
+					END
+FROM dbo.Person
 
 
 /**********************
@@ -48,5 +104,11 @@ and a moving average of risk for that patient and payer in dbo.Risk.
 **********************/
 
 
-
+SELECT 
+	  [Patient Name] = PersonName,
+	  [Payer] = AttributedPayer,
+	  [Risk Score] = RiskScore,
+	  [Risk DateTime] = RiskDateTime,
+	  [MovingAverage] = AVG(RiskScore) OVER (PARTITION BY Person.PersonID, AttributedPayer ORDER BY RiskDateTime ASC)
+  FROM dbo.Person LEFT JOIN dbo.Risk ON Person.PersonID = Risk.PersonID
 
