@@ -1,0 +1,11 @@
+Unit Tests for Python Demo
+
+I didn't have time to write the tests, but they would things like the following:
+
+1. Bad XL format - missing columns, wrong names etc.
+2. Bad values in data - missing data, wrong datatype etc.
+3. Incorrect DB connection
+4. Incorrect DB structure (NOT NULL when should be null)
+5. Test files and logging showing rows in, rows out and expected results
+
+Each type of error might include a more robust error handler etc.
