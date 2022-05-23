@@ -20,6 +20,16 @@ Any patients that dont have a risk level should also be included in the results.
 
 **********************/
 
+with t2 as (select per.personid,per.personname,rs.risklevel,rs.riskdatetime , ROW_NUMBER() OVER ( partition by per.personid,rs.riskdatetime ORDER BY RiskDateTime DESC) AS ID from dbo.person per left join dbo.risk rs on per.personid=
+rs.personid),
+t3 as (
+select t2.* from t2 as t1 inner join t2 as t2 on t1.PersonID=t2.PersonID and t1.id>1 and t1.RiskDateTime=t2.RiskDateTime
+ ) 
+ select t3.personid,t3.personname,t3.risklevel,t3.riskdatetime from t3 
+ union
+ select b.personid,b.personname,b.risklevel,b.riskdatetime from (
+ select t2.*, ROW_NUMBER() OVER ( partition by t2.personid ORDER BY RiskDateTime DESC) AS ID1 from t2 where t2.personid not in (select distinct personid from t3)) b
+ where b.ID1=1
 
 
 
@@ -36,7 +46,21 @@ or be blank if no nickname exists.
 
 **********************/
 
+use persondatabase;
 
+with abc as (
+select personName,
+(CHARINDEX('(',personName)+1) as p1,
+(CHARINDEX(')',personName)) as p2 
+from dbo.Person 
+)
+select  
+case when (p2-p1)=0 then ''
+ when (p2-p1)=-1 then ''
+else substring(personname,p1,p2-p1)
+end as nickname ,personname
+from abc 
+where (p2-p1)>=-1;
 
 /**********************
 
@@ -47,6 +71,21 @@ and a moving average of risk for that patient and payer in dbo.Risk.
 
 **********************/
 
+select avg(riskscore) as Moving_avergae,per.PersonID
+--,AttributedPayer  
+from dbo.person per left join dbo.risk rs on per.personid=
+rs.personid
+group by per.PersonID
+
+select avg(riskscore) as Moving_avergae
+--,per.PersonID
+,AttributedPayer  
+from dbo.risk rs  left join dbo.person per on per.personid=
+rs.personid
+group by AttributedPayer
 
 
+select avg(riskscore) as Moving_avergae,PersonID,AttributedPayer from dbo.risk
+group by PersonID,AttributedPayer
 
+/**********************
