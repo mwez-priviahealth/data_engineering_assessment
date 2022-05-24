@@ -22,9 +22,9 @@ Any patients that dont have a risk level should also be included in the results.
 SELECT p.PersonName, r.RiskLevel
 FROM PersonDatabase.dbo.Person p 
 LEFT JOIN (SELECT PersonID, RiskLevel
-		   FROM (SELECT PersonID, RiskLevel, DENSE_RANK() OVER(PARTITION BY PersonID ORDER BY RiskDateTime DESC) AS rnk
-				 FROM PersonDatabase.dbo.Risk) a
-		   WHERE rnk = 1) r
+	   FROM (SELECT PersonID, RiskLevel, DENSE_RANK() OVER(PARTITION BY PersonID ORDER BY RiskDateTime DESC) AS rnk
+		 FROM PersonDatabase.dbo.Risk) a
+		 WHERE rnk = 1) r
 ON p.PersonID = r.PersonID
 
 
@@ -40,13 +40,13 @@ or be blank if no nickname exists.
 
 **********************/
 SELECT CASE WHEN CHARINDEX('(', PersonName)+CHARINDEX(')', PersonName) > 0 
-			THEN TRIM(LEFT(PersonName, IIF(CHARINDEX('(', PersonName) = 0, 0, CHARINDEX('(', PersonName)-1))+RIGHT(PersonName, IIF(LEN(PersonName)-CHARINDEX(')', PersonName) = 0, 0, LEN(PersonName)-CHARINDEX(')', PersonName)-1)))
-			ELSE PersonName
-	   END AS FullName,
-	   NULLIF(CASE WHEN CHARINDEX('(', PersonName)+CHARINDEX(')', PersonName) > 0 
-				   THEN SUBSTRING(PersonName, CHARINDEX('(', PersonName)+1, CHARINDEX(')', PersonName)-1-CHARINDEX('(', PersonName)) 
-				   ELSE NULL
-			  END, '') AS NickName
+	    THEN TRIM(LEFT(PersonName, IIF(CHARINDEX('(', PersonName) = 0, 0, CHARINDEX('(', PersonName)-1))+RIGHT(PersonName, IIF(LEN(PersonName)-CHARINDEX(')', PersonName) = 0, 0, LEN(PersonName)-CHARINDEX(')', PersonName)-1)))
+	    ELSE PersonName
+       END AS FullName,
+       NULLIF(CASE WHEN CHARINDEX('(', PersonName)+CHARINDEX(')', PersonName) > 0 
+		   THEN SUBSTRING(PersonName, CHARINDEX('(', PersonName)+1, CHARINDEX(')', PersonName)-1-CHARINDEX('(', PersonName)) 
+		   ELSE NULL
+	      END, '') AS NickName
 FROM PersonDatabase.dbo.Person
 
 
