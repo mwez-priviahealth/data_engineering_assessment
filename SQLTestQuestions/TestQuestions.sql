@@ -1,4 +1,5 @@
 USE PERSONDATABASE
+Go
 
 /*********************
 Hello! 
@@ -11,7 +12,6 @@ All answers should be executable on a MS SQL Server 2012 instance.
 ***********************
 
 
-
 QUESTION 1
 
 The table dbo.Risk contains calculated risk scores for the population in dbo.Person. Write a 
@@ -19,9 +19,12 @@ query or group of queries that return the patient name, and their most recent ri
 Any patients that dont have a risk level should also be included in the results. 
 
 **********************/
-
-
-
+/*The with clause can be used in a CREATE VIEW statement as part of its defining SELECT statement.*/
+with temp (PersonName, RiskLevel, RiskDateTime, rnk) as (
+select PersonName, RiskLevel, RiskDateTime, Rank() over (partition by PersonName order by RiskDateTime desc) from dbo.Person
+left outer join dbo.Risk on dbo.Risk.PersonID = dbo.Person.PersonID
+)
+select PersonName, RiskLevel, RiskDateTime from temp where rnk = 1;
 
 
 /**********************
