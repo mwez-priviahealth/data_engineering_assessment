@@ -172,6 +172,6 @@ except:
 try:
     mydb.commit()
     mydb.close()
-    print("Passed")
+    print("Load Completed")
 except:
     print("Error")
