@@ -27,8 +27,39 @@ SELECT PersonName, RiskLevel
 FROM info
 WHERE RiskRank =1;
 
+/**********************
+
+QUESTION 2
 
 
+The table dbo.Person contains basic demographic information. The source system users 
+input nicknames as strings inside parenthesis. Write a query or group of queries to 
+return the full name and nickname of each person. The nickname should contain only letters 
+or be blank if no nickname exists.
+
+**********************/
+
+/*Check the position of Open and Close Paranthesis*/
+SELECT PersonName, CHARINDEX('(', PersonName), CHARINDEX( ')', PersonName)
+FROM Person;
+
+/**/
+SELECT	PersonName,
+    CASE
+        WHEN CHARINDEX('(', PersonName) > 0 THEN
+        CONCAT(
+            SUBSTRING(PersonName, 1, CHARINDEX('(', PersonName) - 1 ),                   /* Searched string before "(" position */
+            SUBSTRING(PersonName, CHARINDEX( ')', PersonName) + 1, LEN(PersonName))     /* Searched string after "(" position */
+        )
+        ELSE PersonName END AS FullName
+        ,
+    CASE
+        WHEN CHARINDEX('(', PersonName) > 0 THEN
+        SUBSTRING(PersonName, CHARINDEX('(', PersonName) + 1, (CHARINDEX( ')', PersonName) - (CHARINDEX('(', PersonName)) -1) )
+        
+        ELSE PersonName END AS NickName
+
+FROM Person;
 
 /**********************
 
