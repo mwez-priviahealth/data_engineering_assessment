@@ -1,0 +1,9 @@
+1. Clone repository
+
+2. Open repository in PyCharm
+
+3. Run the following: pip install -r requirements.txt in the terminal
+
+4. Run Python_Data_Assignment.py
+
+Disclaimer: This is under the assumption that SQL is installed and the PersonDatabase exists
